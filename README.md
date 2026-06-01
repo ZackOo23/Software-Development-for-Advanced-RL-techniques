@@ -1,128 +1,343 @@
-# PPO for ANYmal D (MuJoCo) — Hugging Face
+# ANYmal-D Learning Pipeline
 
-This is the ANYmal **D** version of the ANYmal C PPO project. The three training
-scripts are direct ports of the ANYmal C set, with two kinds of change only:
+Reproducible ANYmal-D robotics learning pipeline with PPO baseline training, structured experiment logging, waypoint-based demonstration collection, and preparation for imitation learning with Diffusion Policy or Flow Matching.
 
-1. **ANYmal D.** They load the ANYmal D model (`anybotics_anymal_d/scene.xml`) and
-   save to `pretrained_models/anymal_d/`. The robot's kinematics are identical
-   between C and D (12 leg joints, 19-dim `qpos`, 18-dim `qvel`), so the network
-   sizes, action mapping, and reward logic are unchanged. The standing pose and
-   height target are read from the model's `home` keyframe, so they track the D
-   XML automatically.
-2. **Hugging Face.** All experiment tracking now uses the Hugging Face
-   stack instead of Weights & Biases (see "What changed" below).
+This repository extends an ANYmal-D PPO baseline into a more maintainable robotics learning pipeline for advanced simulation. The goal is to make training, evaluation, metric tracking, and demonstration dataset generation reproducible and easier to compare across experiments.
 
-## Layout
+---
 
-```
-anymal_d_ppo/
-├── anymal_d/                                  # the scripts
-│   ├── RL_PPO_ANYMAL_D_SWEEP_OR_TRAIN.py          # MultivariateNormal trainer + sweep
-│   ├── RL_PPO_ANYMAL_D_SWEEP_OR_TRAIN_RENDERING.py# Normal/delta trainer + sweep + render
-│   ├── RL_PPO_ANYMAL_D_VIDEO.py                   # render videos from a checkpoint
-│   └── experiment_metrics.py                      # CSV/JSONL metrics logger
-├── anybotics_anymal_d/                        # the MuJoCo model (scene.xml, assets, …)
-├── pretrained_models/anymal_d/                # checkpoints + videos land here
-├── runs/<run_name>/                           # structured experiment logs
+## Project Overview
+
+This project focuses on two main goals:
+
+1. **Engineering improvements for robotics learning**
+   - Structured experiment tracking.
+   - Metrics logging in CSV and JSONL formats.
+   - PPO checkpoint management.
+   - Waypoint demonstration dataset generation.
+   - Cleaner repository structure for future imitation learning experiments.
+
+2. **Preparation for imitation learning**
+   - Demonstrations are collected from waypoint trajectories.
+   - The generated dataset can later be used to train a Diffusion Policy or Flow Matching policy.
+   - The final objective is to compare imitation learning policies against the PPO baseline.
+
+---
+
+## Repository Structure
+
+```text
+.
+├── anymal_d/
+│   ├── RL_PPO_ANYMAL_D_SWEEP_OR_TRAIN.py
+│   ├── RL_PPO_ANYMAL_D_SWEEP_OR_TRAIN_RENDERING.py
+│   ├── RL_PPO_ANYMAL_D_VIDEO.py
+│   ├── collect_waypoint_demos.py
+│   └── experiment_metrics.py
+│
+├── anybotics_anymal_d/
+│   ├── scene.xml
+│   ├── anymal_d.xml
+│   └── assets/
+│
+├── datasets/
+│   └── waypoint_demos/
+│       └── waypoint_demo_final/
+│           ├── episodes.csv
+│           └── summary.json
+│
 ├── requirements.txt
-└── README.md
+├── README.md
+└── .gitignore
 ```
 
-The scripts find `anybotics_anymal_d/scene.xml` by walking up from their own
-location, so you can run them from anywhere in the project.
+---
 
-## Install
+## Main Features
+
+### Structured Experiment Tracking
+
+The PPO training script records training and evaluation metrics in a structured format.
+
+Metrics are saved to:
+
+```text
+runs/<run_name>/metrics.csv
+runs/<run_name>/metrics.jsonl
+runs/<run_name>/config.json
+```
+
+The logged metrics include:
+
+| Metric | Description |
+|---|---|
+| `episode_return` | Total reward obtained in one episode |
+| `running_return` | Smoothed reward across episodes |
+| `episode_length` | Number of steps before termination |
+| `policy_loss` | PPO policy loss |
+| `value_loss` | Critic/value function loss |
+| `entropy` | Policy entropy |
+| `success_rate` | Whether the robot reached the desired objective |
+| `fall_rate` | Whether the robot fell during the episode |
+| `forward_distance_m` | Forward distance traveled |
+| `path_length_m` | Total path length traveled |
+| `waypoint_completion_rate` | Fraction of completed waypoints |
+| `control_smoothness` | Smoothness of the control actions |
+| `action_std` | Standard deviation of the actions |
+
+Trackio is also supported for experiment visualization.
+
+---
+
+## Installation
+
+Create and activate a Python virtual environment.
+
+### Windows PowerShell
+
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### macOS / Linux
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+---
+
+## Training the PPO Baseline
+
+To train the PPO baseline and save structured metrics:
+
+```bash
+python anymal_d/RL_PPO_ANYMAL_D_SWEEP_OR_TRAIN_RENDERING.py train --run-name ppo_baseline_01
+```
+
+This creates a run folder:
+
+```text
+runs/ppo_baseline_01/
+```
+
+with:
+
+```text
+config.json
+metrics.csv
+metrics.jsonl
+```
+
+---
+
+## Visualizing Metrics
+
+Trackio can be used to visualize training metrics:
+
+```bash
+trackio show --project "AIDL-PPO-ANYMAL_D"
+```
+
+The training script also prints the local Trackio cache location when a run starts.
+
+---
+
+## Live Rendering
+
+To watch the robot during training, use:
+
+```bash
+python anymal_d/RL_PPO_ANYMAL_D_SWEEP_OR_TRAIN_RENDERING.py train --run-name ppo_live_test --live
+```
+
+On Windows, automatic MP4 checkpoint rendering may be disabled to avoid FFmpeg compatibility errors. This does not affect training, metrics logging, or checkpoint generation.
+
+---
+
+## PPO Checkpoints
+
+During training, PPO policy and optimizer checkpoints are saved locally in:
+
+```text
+pretrained_models/anymal_d/
+```
+
+These files are not committed to GitHub because they can become large. They can be regenerated by running the training script.
+
+Example checkpoint name:
+
+```text
+ppo_live_test_14886_Reward-1803.44_policy.pt
+```
+
+---
+
+## Waypoint Demonstration Collection
+
+This repository includes a script to collect waypoint-based demonstrations from a trained policy:
+
+```text
+anymal_d/collect_waypoint_demos.py
+```
+
+Example command using a trained PPO policy:
+
+```bash
+python anymal_d/collect_waypoint_demos.py \
+  --episodes 20 \
+  --source policy \
+  --policy "pretrained_models/anymal_d/ppo_live_test_14886_Reward-1803.44_policy.pt" \
+  --run-name waypoint_demo_final \
+  --waypoints "0.15,0;0.30,0;0.45,0;0.60,0;0.75,0" \
+  --reach-radius 0.35
+```
+
+For Windows PowerShell, the same command can be written in one line:
+
+```powershell
+python anymal_d\collect_waypoint_demos.py --episodes 20 --source policy --policy "pretrained_models\anymal_d\ppo_live_test_14886_Reward-1803.44_policy.pt" --run-name waypoint_demo_final --waypoints "0.15,0;0.30,0;0.45,0;0.60,0;0.75,0" --reach-radius 0.35
+```
+
+The generated dataset is saved to:
+
+```text
+datasets/waypoint_demos/waypoint_demo_final/
+```
+
+The full dataset file `demos.npz` is excluded from the repository because it can be large. The repository includes lightweight evidence files:
+
+```text
+episodes.csv
+summary.json
+```
+
+---
+
+## Final Demonstration Dataset Results
+
+A final waypoint demonstration dataset was generated using short forward waypoints and a reach radius of `0.35 m`.
+
+Final results:
+
+| Metric | Value |
+|---|---|
+| Episodes | 20 |
+| Samples | 4034 |
+| Mean waypoint completion | 0.95 |
+| Fall rate | 0.15 |
+
+This shows that the trained PPO policy can generate useful waypoint trajectory demonstrations. These demonstrations can be used as training data for an imitation learning policy.
+
+---
+
+## Dataset Contents
+
+The full `.npz` demonstration dataset stores:
+
+| Field | Description |
+|---|---|
+| `obs` | Original robot observations |
+| `obs_goal` | Robot observations augmented with waypoint information |
+| `actions` | Actions produced by the demonstration policy |
+| `next_obs` | Next observations |
+| `next_obs_goal` | Next goal-conditioned observations |
+| `rewards` | Environment rewards |
+| `dones` | Episode termination flags |
+| `robot_xy` | Robot position in the plane |
+| `waypoint_xy` | Current waypoint position |
+| `waypoint_index` | Current waypoint index |
+| `reached` | Whether the waypoint was reached |
+| `fall` | Whether the robot fell |
+| `waypoints` | Waypoint sequence used in the episode |
+
+The most important field for imitation learning is `obs_goal`, because it combines the robot state with waypoint-relative information.
+
+---
+
+## Imitation Learning Extension
+
+The collected waypoint demonstrations are intended for future training with:
+
+- Diffusion Policy
+- Flow Matching
+- Behavior Cloning baseline
+
+The planned comparison is:
+
+| Policy | Training Source | Evaluation |
+|---|---|---|
+| PPO baseline | Reinforcement learning reward | Episode return, fall rate, distance traveled |
+| Imitation policy | Waypoint demonstrations | Waypoint completion, fall rate, control smoothness |
+
+---
+
+## Files Not Included in GitHub
+
+The following generated files are intentionally excluded:
+
+```text
+.venv/
+runs/
+pretrained_models/
+videos/
+datasets/**/*.npz
+__pycache__/
+*.pyc
+```
+
+These files can be regenerated by running the training and demonstration collection scripts.
+
+---
+
+## Reproducibility Notes
+
+To reproduce the current pipeline:
+
+1. Install dependencies.
+2. Train the PPO baseline.
+3. Visualize metrics using Trackio or inspect `metrics.csv`.
+4. Generate waypoint demonstrations from a trained PPO checkpoint.
+5. Use the generated demonstration dataset for imitation learning.
+
+Example workflow:
 
 ```bash
 pip install -r requirements.txt
-# headless rendering (Linux): apt-get install libosmesa6 && pip install PyOpenGL
-```
 
-## Run
-
-```bash
-# 1) Older trainer (MultivariateNormal policy, raw-action control)
-python anymal_d/RL_PPO_ANYMAL_D_SWEEP_OR_TRAIN.py            # single run
-python anymal_d/RL_PPO_ANYMAL_D_SWEEP_OR_TRAIN.py --sweep    # random-search sweep
-
-# 2) Polished trainer (recommended for the assignment rubric: structured CSV/JSONL metrics)
 python anymal_d/RL_PPO_ANYMAL_D_SWEEP_OR_TRAIN_RENDERING.py train --run-name ppo_baseline_01
-python anymal_d/RL_PPO_ANYMAL_D_SWEEP_OR_TRAIN_RENDERING.py train --live      # live viewer
-python anymal_d/RL_PPO_ANYMAL_D_SWEEP_OR_TRAIN_RENDERING.py sweep --sweep-count 30
-python anymal_d/RL_PPO_ANYMAL_D_SWEEP_OR_TRAIN_RENDERING.py render --num-videos 5
 
-# 3) Make evaluation videos from the best checkpoint
-python anymal_d/RL_PPO_ANYMAL_D_VIDEO.py --num-videos 5
-# headless: prefix any of the above with  MUJOCO_GL=osmesa
+trackio show --project "AIDL-PPO-ANYMAL_D"
+
+python anymal_d/collect_waypoint_demos.py --episodes 20 --source policy --policy "pretrained_models/anymal_d/<policy_checkpoint>.pt" --run-name waypoint_demo_final --waypoints "0.15,0;0.30,0;0.45,0;0.60,0;0.75,0" --reach-radius 0.35
 ```
 
-The video script pairs with trainer **1** (same MultivariateNormal policy class).
-Trainer **2** renders its own videos via its `render` mode.
+---
 
+## Project Status
 
+Implemented:
 
-## Experiment tracking and metrics logging
+- PPO training pipeline.
+- Structured CSV and JSONL metric logging.
+- Trackio experiment tracking.
+- Checkpoint generation.
+- Waypoint demonstration collection.
+- Lightweight dataset evidence files.
 
-This repository records metrics in two places:
+In progress / future work:
 
-1. **Trackio dashboard** for interactive visualization. Start a run normally and then open:
+- Diffusion Policy training.
+- Flow Matching policy training.
+- Modular policy evaluation script.
+- Quantitative comparison between PPO and imitation learning policies.
 
-```bash
-trackio show --project AIDL-PPO-ANYMAL_D
-```
+---
 
-2. **Local structured logs** for reproducibility. The polished trainer always writes:
+## Acknowledgments
 
-```text
-runs/<run_name>/config.json
-runs/<run_name>/metrics.csv
-runs/<run_name>/metrics.jsonl
-```
-
-The CSV and JSONL logs contain one row/object per training or evaluation episode. The recorded fields include episode return, running return, episode length, PPO losses, entropy, PPO ratio, action standard deviation, success rate, fall rate, forward distance, path length, waypoint completion rate, and control smoothness.
-
-Run an experiment with a readable name:
-
-```bash
-python anymal_d/RL_PPO_ANYMAL_D_SWEEP_OR_TRAIN_RENDERING.py train --run-name ppo_baseline_01
-```
-
-Then inspect the structured metrics:
-
-```bash
-head runs/ppo_baseline_01/metrics.csv
-python -m json.tool runs/ppo_baseline_01/config.json
-```
-
-Metric definitions are saved inside `config.json`. In this PPO baseline, `success` means the robot does not fall and reaches `success_distance_m` of forward progress. `waypoint_completion_rate` is computed from the default forward waypoints `[0.25, 0.5, 1.0, 1.5, 2.0]` meters so the PPO baseline can later be compared against the imitation-learning waypoint policy. `control_smoothness` is the mean squared change between consecutive bounded actions; lower values mean smoother control.
-
-## Optional environment variables
-
-Everything runs **fully offline** without these. Set them to enable the cloud bits:
-
-```bash
-export HF_MODEL_REPO="your-username/anymal-d-ppo"   # enable checkpoint upload
-export HF_TOKEN="hf_..."                            # write token (or: hf auth login)
-export HF_PRIVATE=1                                 # 1=private repo (default), 0=public
-export TRACKIO_SPACE_ID="your-username/anymal-d-dash"  # host the dashboard on a Space
-```
-
-View the local dashboard any time with:
-
-```bash
-trackio show --project AIDL-PPO-ANYMAL_D
-```
-
-## Notes / caveats
-
-- The two trainers are intentionally different policies (the C set shipped both):
-  trainer 1 uses a `MultivariateNormal` with an annealed action std; trainer 2 uses
-  a `Normal` with a learnable `log_std` and acts as a small delta around the
-  nominal pose. Their checkpoints are **not** interchangeable.
-- ANYmal D's link masses/geometry differ from C (the thigh is notably heavier),
-  so reward magnitudes and the episodes needed to "solve" will differ — expect to
-  re-tune rather than reuse C's numbers. The HAA action remap (`0.6*x ± 0.1`) sits
-  inside D's hip limits (~[-0.785, 0.611]).
-- If `loss.backward()` segfaults on a CPU-only box via a GPU torch build, remove
-  the stray `triton` package (`pip uninstall triton`); torch then falls back cleanly.
-```
+This project is based on an ANYmal-D PPO simulation repository and extends it with reproducibility, experiment tracking, waypoint demonstration management, and imitation learning preparation.
