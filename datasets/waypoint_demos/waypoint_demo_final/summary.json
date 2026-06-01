@@ -1,0 +1,240 @@
+{
+  "run_name": "waypoint_demo_final",
+  "source": "policy",
+  "policy_path": "pretrained_models\\anymal_d\\ppo_live_test_14886_Reward-1803.44_policy.pt",
+  "episodes": 20,
+  "max_steps": 900,
+  "reach_radius": 0.35,
+  "fall_threshold": 0.35,
+  "mujo_co_steps_per_action": 5,
+  "obs_dim": 35,
+  "obs_goal_dim": 40,
+  "action_dim": 12,
+  "waypoints": [
+    [
+      0.15000000596046448,
+      0.0
+    ],
+    [
+      0.30000001192092896,
+      0.0
+    ],
+    [
+      0.44999998807907104,
+      0.0
+    ],
+    [
+      0.6000000238418579,
+      0.0
+    ],
+    [
+      0.75,
+      0.0
+    ]
+  ],
+  "total_samples": 4034,
+  "mean_completion_rate": 0.95,
+  "fall_rate": 0.15,
+  "episodes_detail": [
+    {
+      "episode": 0,
+      "steps": 62,
+      "return": 132.61129486806377,
+      "reached_waypoints": 5,
+      "total_waypoints": 5,
+      "waypoint_completion_rate": 1.0,
+      "final_waypoint_distance_m": 0.3429703414440155,
+      "fall": false
+    },
+    {
+      "episode": 1,
+      "steps": 68,
+      "return": 144.04610376976288,
+      "reached_waypoints": 5,
+      "total_waypoints": 5,
+      "waypoint_completion_rate": 1.0,
+      "final_waypoint_distance_m": 0.34884437918663025,
+      "fall": false
+    },
+    {
+      "episode": 2,
+      "steps": 198,
+      "return": 377.7104547171959,
+      "reached_waypoints": 4,
+      "total_waypoints": 5,
+      "waypoint_completion_rate": 0.8,
+      "final_waypoint_distance_m": 1.1313838958740234,
+      "fall": true
+    },
+    {
+      "episode": 3,
+      "steps": 72,
+      "return": 155.46761451160188,
+      "reached_waypoints": 5,
+      "total_waypoints": 5,
+      "waypoint_completion_rate": 1.0,
+      "final_waypoint_distance_m": 0.34879738092422485,
+      "fall": false
+    },
+    {
+      "episode": 4,
+      "steps": 521,
+      "return": 1295.8753977602164,
+      "reached_waypoints": 4,
+      "total_waypoints": 5,
+      "waypoint_completion_rate": 0.8,
+      "final_waypoint_distance_m": 6.565774917602539,
+      "fall": true
+    },
+    {
+      "episode": 5,
+      "steps": 64,
+      "return": 137.57486627358466,
+      "reached_waypoints": 5,
+      "total_waypoints": 5,
+      "waypoint_completion_rate": 1.0,
+      "final_waypoint_distance_m": 0.3430953919887543,
+      "fall": false
+    },
+    {
+      "episode": 6,
+      "steps": 64,
+      "return": 142.98166285152385,
+      "reached_waypoints": 5,
+      "total_waypoints": 5,
+      "waypoint_completion_rate": 1.0,
+      "final_waypoint_distance_m": 0.3481656610965729,
+      "fall": false
+    },
+    {
+      "episode": 7,
+      "steps": 801,
+      "return": 2127.762792202315,
+      "reached_waypoints": 4,
+      "total_waypoints": 5,
+      "waypoint_completion_rate": 0.8,
+      "final_waypoint_distance_m": 12.830344200134277,
+      "fall": false
+    },
+    {
+      "episode": 8,
+      "steps": 61,
+      "return": 133.6215970528335,
+      "reached_waypoints": 5,
+      "total_waypoints": 5,
+      "waypoint_completion_rate": 1.0,
+      "final_waypoint_distance_m": 0.34924736618995667,
+      "fall": false
+    },
+    {
+      "episode": 9,
+      "steps": 58,
+      "return": 127.6610714523538,
+      "reached_waypoints": 5,
+      "total_waypoints": 5,
+      "waypoint_completion_rate": 1.0,
+      "final_waypoint_distance_m": 0.3488774001598358,
+      "fall": false
+    },
+    {
+      "episode": 10,
+      "steps": 57,
+      "return": 127.89044371892466,
+      "reached_waypoints": 5,
+      "total_waypoints": 5,
+      "waypoint_completion_rate": 1.0,
+      "final_waypoint_distance_m": 0.3433654010295868,
+      "fall": false
+    },
+    {
+      "episode": 11,
+      "steps": 69,
+      "return": 151.54886228243018,
+      "reached_waypoints": 5,
+      "total_waypoints": 5,
+      "waypoint_completion_rate": 1.0,
+      "final_waypoint_distance_m": 0.34745728969573975,
+      "fall": false
+    },
+    {
+      "episode": 12,
+      "steps": 68,
+      "return": 138.2517793623867,
+      "reached_waypoints": 5,
+      "total_waypoints": 5,
+      "waypoint_completion_rate": 1.0,
+      "final_waypoint_distance_m": 0.34629523754119873,
+      "fall": false
+    },
+    {
+      "episode": 13,
+      "steps": 801,
+      "return": 2098.0011485696496,
+      "reached_waypoints": 4,
+      "total_waypoints": 5,
+      "waypoint_completion_rate": 0.8,
+      "final_waypoint_distance_m": 12.068543434143066,
+      "fall": false
+    },
+    {
+      "episode": 14,
+      "steps": 58,
+      "return": 129.13951969263059,
+      "reached_waypoints": 5,
+      "total_waypoints": 5,
+      "waypoint_completion_rate": 1.0,
+      "final_waypoint_distance_m": 0.34991708397865295,
+      "fall": false
+    },
+    {
+      "episode": 15,
+      "steps": 61,
+      "return": 125.70142574103244,
+      "reached_waypoints": 5,
+      "total_waypoints": 5,
+      "waypoint_completion_rate": 1.0,
+      "final_waypoint_distance_m": 0.3444111943244934,
+      "fall": false
+    },
+    {
+      "episode": 16,
+      "steps": 61,
+      "return": 132.1141923667832,
+      "reached_waypoints": 5,
+      "total_waypoints": 5,
+      "waypoint_completion_rate": 1.0,
+      "final_waypoint_distance_m": 0.3442579507827759,
+      "fall": false
+    },
+    {
+      "episode": 17,
+      "steps": 764,
+      "return": 1293.4262933715047,
+      "reached_waypoints": 4,
+      "total_waypoints": 5,
+      "waypoint_completion_rate": 0.8,
+      "final_waypoint_distance_m": 4.481472969055176,
+      "fall": true
+    },
+    {
+      "episode": 18,
+      "steps": 57,
+      "return": 123.71846588185649,
+      "reached_waypoints": 5,
+      "total_waypoints": 5,
+      "waypoint_completion_rate": 1.0,
+      "final_waypoint_distance_m": 0.3364183306694031,
+      "fall": false
+    },
+    {
+      "episode": 19,
+      "steps": 69,
+      "return": 137.6376274128981,
+      "reached_waypoints": 5,
+      "total_waypoints": 5,
+      "waypoint_completion_rate": 1.0,
+      "final_waypoint_distance_m": 0.3482992351055145,
+      "fall": false
+    }
+  ]
+}

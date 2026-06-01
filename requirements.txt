@@ -1,0 +1,18 @@
+# Core simulation + RL
+mujoco>=3.0
+torch>=2.0
+numpy>=1.24
+
+# Rendering / plotting
+mediapy>=1.1
+matplotlib>=3.6
+
+# Hugging Face stack (replaces wandb)
+trackio>=0.2          # experiment tracking, drop-in wandb API
+huggingface_hub>=0.23 # checkpoint upload/download to the Hub
+
+# Notes:
+#  * Offscreen rendering needs a GL backend. On headless Linux:
+#       pip install PyOpenGL  and  apt-get install libosmesa6
+#       then run with  MUJOCO_GL=osmesa
+#  * trackio needs Python >= 3.10.
